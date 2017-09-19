@@ -18,7 +18,7 @@ disk::read_block(blockid_t id, char *buf)
    *hint: use memcpy
   */
 
-  if (id < 0 || id >= BLOCK_NUM || !buf) return;
+  if (id >= BLOCK_NUM || !buf) return;
 
   const char *block = (const char*) blocks[id];
   memcpy(buf, block, BLOCK_SIZE);
@@ -32,7 +32,7 @@ disk::write_block(blockid_t id, const char *buf)
    *hint: just like read_block
   */
   
-  if (id < 0 || id >= BLOCK_NUM || !buf) return;
+  if (id >= BLOCK_NUM || !buf) return;
 
   char *block = (char *) blocks[id];
   memcpy(block, buf, BLOCK_SIZE);
@@ -91,7 +91,7 @@ block_manager::free_block(uint32_t id)
 
   printf("\t\tbm: free_block %d\n", id);
 
-  if (id < 0 || id >= BLOCK_NUM) return;
+  if (id >= BLOCK_NUM) return;
 
   char bitmap_buf[BLOCK_SIZE];
   uint32_t byte_index = (id % BPB) / 8;
@@ -160,24 +160,30 @@ inode_manager::alloc_inode(uint32_t type)
    * if you get some heap memory, do not forget to free it.
    */
   
-  struct inode ino,  *tmp;
+  char buf[BLOCK_SIZE];
 
-  for (uint32_t inum = 1; inum <= INODE_NUM; ++inum) {
-    if (!(tmp = get_inode(inum))) {
-      ino.type = type;
-      ino.size = 0;
-      put_inode(inum, &ino);
-
+  for (blockid_t block = IBLOCK(1, bm->sb.nblocks); block < INODE_NUM / IPB; ++block) {
+  bm->read_block(block, buf);
+  
+    for (int inode_index = 0; inode_index < IPB; ++inode_index) {
+      struct inode *ino = (struct inode*) buf + inode_index % IPB;
+      if (ino->type) continue;
+        
+      uint32_t inum = (block - IBLOCK(1, bm->sb.nblocks)) * IPB + inode_index + 1;
+      ino->type = type;
+      ino->size = 0;
+      
       printf("\tim: alloc_inode %d\n", inum);
+      
+      put_inode(inum, ino);
+
       return inum;
-    } else {
-      free(tmp);
     }
   }
-  
-  printf("\tim: error! alloc_inode with type %d failed\n", type);
+ 
   return 0;
 }
+
 
 void
 inode_manager::free_inode(uint32_t inum)
