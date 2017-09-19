@@ -44,6 +44,8 @@ class block_manager {
   void free_block(uint32_t id);
   void read_block(uint32_t id, char *buf);
   void write_block(uint32_t id, const char *buf);
+
+  int get_nblocks(int size) { return size / BLOCK_SIZE + (size % BLOCK_SIZE != 0); }
 };
 
 // inode layer -----------------------------------------
@@ -55,7 +57,7 @@ class block_manager {
 //(BLOCK_SIZE / sizeof(struct inode))
 
 // Block containing inode i
-#define IBLOCK(i, nblocks)     ((nblocks)/BPB + (i)/IPB + 3)
+#define IBLOCK(i, nblocks)     ((nblocks)/BPB + ((i)-1)/IPB + 3)
 
 // Bitmap bits per block
 #define BPB           (BLOCK_SIZE*8)
