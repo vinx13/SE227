@@ -48,10 +48,6 @@ block_manager::alloc_block()
    * your lab1 code goes here.
    * note: you should mark the corresponding bit in block bitmap when alloc.
    * you need to think about which block you can start to be allocated.
-
-   *hint: use macro IBLOCK and BBLOCK.
-          use bit operation.
-          remind yourself of the layout of disk.
    */
   
   char bitmap_buf[BLOCK_SIZE];
@@ -104,6 +100,7 @@ block_manager::free_block(uint32_t id)
 
   bitmap_buf[byte_index] &= ~(1 << bit_index);
   d->write_block(bitmap, bitmap_buf);
+
 }
 
 // The layout of disk should be like this:
@@ -156,8 +153,6 @@ inode_manager::alloc_inode(uint32_t type)
    * your lab1 code goes here.
    * note: the normal inode block should begin from the 2nd inode block.
    * the 1st is used for root_dir, see inode_manager::inode_manager().
-    
-   * if you get some heap memory, do not forget to free it.
    */
   
   char buf[BLOCK_SIZE];
@@ -192,7 +187,6 @@ inode_manager::free_inode(uint32_t inum)
    * your lab1 code goes here.
    * note: you need to check if the inode is already a freed one;
    * if not, clear it, and remember to write back to disk.
-   * do not forget to free memory if necessary.
    */
 
   printf("\tim: put_inode %d\n", inum);
@@ -265,7 +259,7 @@ inode_manager::read_file(uint32_t inum, char **buf_out, int *size)
   /*
    * your lab1 code goes here.
    * note: read blocks related to inode number inum,
-   * and copy them to buf_out
+   * and copy them to buf_Out
    */
   if (inum >= INODE_NUM) return;
 
@@ -305,8 +299,7 @@ inode_manager::write_file(uint32_t inum, const char *buf, int size)
    * your lab1 code goes here.
    * note: write buf to blocks of inode inum.
    * you need to consider the situation when the size of buf 
-   * is larger or smaller than the size of original inode.
-   * you should free some blocks if necessary.
+   * is larger or smaller than the size of original inode
    */
 
   printf("\tim: write_file %d, size %d\n", inum, size);
@@ -415,7 +408,6 @@ inode_manager::remove_file(uint32_t inum)
   /*
    * your lab1 code goes here
    * note: you need to consider about both the data block and inode of the file
-   * do not forget to free memory if necessary.
    */
 
   printf("\tim: remove_file %d\n", inum);
@@ -444,3 +436,4 @@ inode_manager::remove_file(uint32_t inum)
 
   free_inode(inum);
 }
+
