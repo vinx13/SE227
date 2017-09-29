@@ -54,8 +54,7 @@ class yfs_client {
   int savedirnode(inum ino, const dir &dirnode);
 
  public:
-  yfs_client();
-  yfs_client(std::string, std::string);
+  yfs_client(std::string);
 
   bool isfile(inum);
   bool isdir(inum);
