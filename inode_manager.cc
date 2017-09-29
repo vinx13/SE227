@@ -1,4 +1,5 @@
 #include "inode_manager.h"
+#include <ctime>
 
 // disk layer -----------------------------------------
 
@@ -52,7 +53,7 @@ block_manager::alloc_block()
   
   char bitmap_buf[BLOCK_SIZE];
 
-  for (blockid_t block = IBLOCK(INODE_NUM, BLOCK_NUM), bitmap = BBLOCK(0);
+  for (blockid_t block = IBLOCK(INODE_NUM + 1, BLOCK_NUM), bitmap = BBLOCK(0);
        block < BLOCK_NUM;
        ++bitmap, block += BPB) { 
     d->read_block(bitmap, bitmap_buf);
@@ -167,6 +168,7 @@ inode_manager::alloc_inode(uint32_t type)
       uint32_t inum = (block - IBLOCK(1, bm->sb.nblocks)) * IPB + inode_index + 1;
       ino->type = type;
       ino->size = 0;
+      ino->mtime = ino->ctime = ino->atime = std::time(0);
       
       printf("\tim: alloc_inode %d\n", inum);
       
@@ -288,6 +290,9 @@ inode_manager::read_file(uint32_t inum, char **buf_out, int *size)
     bm->free_block(ino->blocks[NDIRECT]);
   }
   
+  ino->atime = std::time(0);
+  put_inode(inum, ino);
+
   free(ino);
 }
 
@@ -345,13 +350,14 @@ inode_manager::write_file(uint32_t inum, const char *buf, int size)
       bm->read_block(inode->blocks[NDIRECT], (char *)indirect_blocks);
     }
 
-    for (i = old_nblocks; i >= MAX(NDIRECT, nblocks); --i) {
+    for (i = old_nblocks - 1; i >= MAX(NDIRECT, nblocks); --i) {
       blockid_t id = indirect_blocks[i - NDIRECT];
       bm->free_block(id);
     }
-
+    
     if (i >= nblocks) {
-      bm->free_block(inode->blocks[NDIRECT]);
+      if (old_nblocks > NDIRECT)  
+        bm->free_block(inode->blocks[NDIRECT]);
       for (; i >= nblocks; --i) {
         blockid_t id = inode->blocks[i];
         bm->free_block(id);
@@ -371,7 +377,9 @@ inode_manager::write_file(uint32_t inum, const char *buf, int size)
     bm->write_block(id, buf + i * BLOCK_SIZE);
   }  
     
+  inode->ctime = inode->mtime = inode->atime = std::time(0);
   put_inode(inum, inode);
+
   free(inode);
 }
 

@@ -2,4 +2,6 @@
 lab1_tester
 *.swp
 *.tgz
+*.log
 *.d
+yfs_client
