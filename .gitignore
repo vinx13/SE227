@@ -5,3 +5,5 @@ lab1_tester
 *.log
 *.d
 yfs_client
+test-lab-3-g
+extent_server

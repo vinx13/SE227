@@ -32,6 +32,7 @@ extent_client::create(uint32_t type, extent_protocol::extentid_t &id)
 {
   extent_protocol::status ret = extent_protocol::OK;
   // Your lab3 code goes here
+  ret = cl->call(extent_protocol::create, type, id);
   return ret;
 }
 
@@ -40,22 +41,27 @@ extent_client::get(extent_protocol::extentid_t eid, std::string &buf)
 {
   extent_protocol::status ret = extent_protocol::OK;
   // Your lab3 code goes here
+  ret = cl->call(extent_protocol::get, eid, buf);
   return ret;
 }
 
 extent_protocol::status
 extent_client::put(extent_protocol::extentid_t eid, std::string buf)
 {
+  int result;
   extent_protocol::status ret = extent_protocol::OK;
   // Your lab3 code goes here
+  ret = cl->call(extent_protocol::put, eid, buf, result);
   return ret;
 }
 
 extent_protocol::status
 extent_client::remove(extent_protocol::extentid_t eid)
 {
+  int result;
   extent_protocol::status ret = extent_protocol::OK;
   // Your lab3 code goes here
+  ret = cl->call(extent_protocol::remove, eid, result);
   return ret;
 }
 

@@ -11,12 +11,7 @@
 
 yfs_client::yfs_client(std::string extent_dst)
 {
-    ec = new extent_client();
-}
-
-yfs_client::yfs_client(std::string extent_dst, std::string lock_dst)
-{
-    ec = new extent_client();
+    ec = new extent_client(extent_dst);
     if (ec->put(1, "") != extent_protocol::OK)
         printf("error init root dir\n"); // XYB: init root dir
     
@@ -224,9 +219,8 @@ yfs_client::create(inum parent, const char *name, mode_t mode, inum &ino_out)
     dirnode.lookup(name, found, found_inode);
     if (found) return EXIST;
     if ((r = ec->create(extent_protocol::T_FILE, ino_out)) != OK) return r;
-    
     dirnode.addentry(name, mode, ino_out);
-    
+   
     savedirnode(parent, dirnode);
  
     return r;
