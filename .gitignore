@@ -7,3 +7,8 @@ lab1_tester
 yfs_client
 test-lab-3-g
 extent_server
+foo.txt.yfs*
+tmprand
+lock_demo
+lock_server
+lock_tester

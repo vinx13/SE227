@@ -76,6 +76,7 @@ block_manager::alloc_block()
   }
   
   return BLOCK_NUM;
+
 }
 
 void
