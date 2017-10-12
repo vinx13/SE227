@@ -104,6 +104,8 @@ int
 yfs_client::symlink(inum parent, const char *name, const char *link, inum &ino_out) {
     int r = OK;
 
+    lc->acquire(parent);
+
     printf("symlink parent %016llx, name %s, link %s\n", parent, name, link);
 
     dir dirnode;
@@ -120,6 +122,8 @@ yfs_client::symlink(inum parent, const char *name, const char *link, inum &ino_o
 
     savedirnode(parent, dirnode);
 
+    lc->release(parent);
+
     return r;
 }
 
@@ -127,6 +131,8 @@ int
 yfs_client::getfile(inum inum, fileinfo &fin)
 {
     int r = OK;
+
+    lc->acquire(inum);
 
     printf("getfile %016llx\n", inum);
     extent_protocol::attr a;
@@ -142,6 +148,7 @@ yfs_client::getfile(inum inum, fileinfo &fin)
     printf("getfile %016llx -> sz %llu\n", inum, fin.size);
 
 release:
+    lc->release(inum);
     return r;
 }
 
@@ -149,6 +156,8 @@ int
 yfs_client::getdir(inum inum, dirinfo &din)
 {
     int r = OK;
+
+    lc->acquire(inum);
 
     printf("getdir %016llx\n", inum);
     extent_protocol::attr a;
@@ -161,6 +170,7 @@ yfs_client::getdir(inum inum, dirinfo &din)
     din.ctime = a.ctime;
 
 release:
+    lc->release(inum);
     return r;
 }
 
@@ -179,6 +189,7 @@ yfs_client::setattr(inum ino, size_t size)
 {
     int r = OK;
 
+    lc->acquire(ino);
     /*
      * your lab2 code goes here.
      * note: get the content of inode ino, and modify its content
@@ -195,6 +206,7 @@ yfs_client::setattr(inum ino, size_t size)
     buf.resize(size, '\0');
     r = ec->put(ino, buf);
 
+    lc->release(ino);
     return r;
 }
 
@@ -204,7 +216,7 @@ yfs_client::create(inum parent, const char *name, mode_t mode, inum &ino_out)
     int r = OK;
 
     printf("create parent: %016llx, name: %s\n", parent, name);
-
+    lc->acquire(parent);
     /*
      * your lab2 code goes here.
      * note: lookup is what you need to check if file EXIST;
@@ -224,6 +236,7 @@ yfs_client::create(inum parent, const char *name, mode_t mode, inum &ino_out)
    
     savedirnode(parent, dirnode);
  
+    lc->release(parent);
     return r;
 }
 
@@ -233,6 +246,7 @@ yfs_client::mkdir(inum parent, const char *name, mode_t mode, inum &ino_out)
     int r = OK;
 
     printf("mkdir parent: %016llx, name: %s\n", parent, name);
+    lc->acquire(parent);
     /*
      * your lab2 code goes here.
      * note: lookup is what you need to check if directory exist;
@@ -253,6 +267,7 @@ yfs_client::mkdir(inum parent, const char *name, mode_t mode, inum &ino_out)
     
     savedirnode(parent, dirnode);
 
+    lc->release(parent);
     return r;
 }
 
@@ -262,7 +277,7 @@ yfs_client::lookup(inum parent, const char *name, bool &found, inum &ino_out)
     int r = OK;
 
     printf("lookup %s\n", name);
-
+    lc->acquire(parent);
     /*
      * your lab2 code goes here.
      * note: lookup file from parent dir according to name;
@@ -274,6 +289,7 @@ yfs_client::lookup(inum parent, const char *name, bool &found, inum &ino_out)
 
     dirnode.lookup(name, found, ino_out);
 
+    lc->release(parent);
     return r;
 }
 
@@ -282,6 +298,7 @@ yfs_client::readdir(inum parent, std::list<dirent> &list)
 {
     int r = OK;
 
+    lc->acquire(parent);
     /*
      * your lab2 code goes here.
      * note: you should parse the dirctory content using your defined format,
@@ -295,6 +312,7 @@ yfs_client::readdir(inum parent, std::list<dirent> &list)
 
     dirnode.getentries(list);
 
+    lc->release(parent);
     return r;
 }
 
@@ -302,7 +320,7 @@ int
 yfs_client::read(inum ino, size_t size, off_t off, std::string &data)
 {
     int r = OK;
-
+    lc->acquire(ino);
     /*
      * your lab2 code goes here.
      * note: read using ec->get().
@@ -316,6 +334,7 @@ yfs_client::read(inum ino, size_t size, off_t off, std::string &data)
     if (data.size() > size)
       data.resize(size);
 
+    lc->release(ino);
     printf("read %016llx actual size %lu\n", ino, data.size());
     return r;
 }
@@ -325,7 +344,7 @@ yfs_client::write(inum ino, size_t size, off_t off, const char *data,
         size_t &bytes_written)
 {
     int r = OK;
-
+    lc->acquire(ino);
     /*
      * your lab2 code goes here.
      * note: write using ec->put().
@@ -345,13 +364,14 @@ yfs_client::write(inum ino, size_t size, off_t off, const char *data,
     }
     buf.replace(off, size, data, size);
     r = ec->put(ino, buf);
+    lc->release(ino);
     return r;
 }
 
 int yfs_client::unlink(inum parent,const char *name)
 {
     int r = OK;
-
+    lc->acquire(parent);
     /*
      * your lab2 code goes here.
      * note: you should remove the file using ec->remove,
@@ -373,6 +393,7 @@ int yfs_client::unlink(inum parent,const char *name)
 
     r = savedirnode(parent, dirnode);
 
+    lc->release(parent);
     return r;
 }
 
@@ -436,7 +457,7 @@ void yfs_client::dir::dump(std::string &out) const {
 
 void yfs_client::dir::lookup(const std::string &name, bool &found, inum &ino_out) const {
     printf("_lookup %s\n", name.c_str());
-
+ 
     const auto it = entries.find(name);
     if (it != entries.end()) {
         found = true;
