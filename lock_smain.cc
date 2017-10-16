@@ -36,11 +36,8 @@ main(int argc, char *argv[])
   server.reg(lock_protocol::stat, &ls, &lock_server::stat);
 #endif
 
-<<<<<<< HEAD
   server.reg(lock_protocol::acquire, &ls, &lock_server::acquire);
   server.reg(lock_protocol::release, &ls, &lock_server::release);
-=======
->>>>>>> cf4284c1e97487806b378590fcf15de310910818
 
   while(1)
     sleep(1000);

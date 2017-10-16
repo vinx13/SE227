@@ -31,25 +31,19 @@ lock_protocol::status
 lock_client::acquire(lock_protocol::lockid_t lid)
 {
 	// Your lab4 code goes here
-<<<<<<< HEAD
     int r;
     lock_protocol::status ret = cl->call(lock_protocol::acquire, cl->id(), lid, r);
     VERIFY(ret == lock_protocol::OK);
     return r;
-=======
->>>>>>> cf4284c1e97487806b378590fcf15de310910818
 }
 
 lock_protocol::status
 lock_client::release(lock_protocol::lockid_t lid)
 {
 	// Your lab4 code goes here
-<<<<<<< HEAD
     int r;
     lock_protocol::status ret = cl->call(lock_protocol::release, cl->id(), lid, r);
     VERIFY(ret == lock_protocol::OK);
     return r;
-=======
->>>>>>> cf4284c1e97487806b378590fcf15de310910818
 }
 

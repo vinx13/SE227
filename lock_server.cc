@@ -25,7 +25,6 @@ lock_server::acquire(int clt, lock_protocol::lockid_t lid, int &r)
 {
   lock_protocol::status ret = lock_protocol::OK;
 	// Your lab4 code goes here
-<<<<<<< HEAD
   std::unique_lock<std::mutex> lock(mutex_);
 
   printf("acquire %d\n", lid);
@@ -34,8 +33,6 @@ lock_server::acquire(int clt, lock_protocol::lockid_t lid, int &r)
     locks_[lid].cv.wait(lock, [&](){ return locks_[lid].acquired == false; });
   locks_[lid].acquired = true;
   nacquire++;
-=======
->>>>>>> cf4284c1e97487806b378590fcf15de310910818
   return ret;
 }
 
@@ -44,14 +41,12 @@ lock_server::release(int clt, lock_protocol::lockid_t lid, int &r)
 {
   lock_protocol::status ret = lock_protocol::OK;
 	// Your lab4 code goes here
-<<<<<<< HEAD
   printf("release %d\n", lid);
   std::unique_lock<std::mutex> lock(mutex_);
   locks_[lid].acquired = false;
   nacquire--;
   locks_[lid].cv.notify_one();
 
-=======
->>>>>>> cf4284c1e97487806b378590fcf15de310910818
   return ret;
 }
+
