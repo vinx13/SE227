@@ -2,7 +2,10 @@
 #define yfs_client_h
 
 #include <string>
+<<<<<<< HEAD
 #include <map>
+=======
+>>>>>>> cf4284c1e97487806b378590fcf15de310910818
 
 #include "lock_protocol.h"
 #include "lock_client.h"
@@ -11,7 +14,10 @@
 #include "extent_client.h"
 #include <vector>
 
+<<<<<<< HEAD
 #include "inode_manager.h"
+=======
+>>>>>>> cf4284c1e97487806b378590fcf15de310910818
 
 class yfs_client {
   extent_client *ec;
@@ -38,6 +44,7 @@ class yfs_client {
     yfs_client::inum inum;
   };
 
+<<<<<<< HEAD
   class dir {
     std::map<std::string, inum> entries;
   public:
@@ -50,19 +57,27 @@ class yfs_client {
     void getentries(std::list<dirent> &entries) const;
   };
 
+=======
+>>>>>>> cf4284c1e97487806b378590fcf15de310910818
  private:
   static std::string filename(inum);
   static inum n2i(std::string);
 
+<<<<<<< HEAD
   int getdirnode(inum ino, dir &dir_out);
   int savedirnode(inum ino, const dir &dirnode);
 
+=======
+>>>>>>> cf4284c1e97487806b378590fcf15de310910818
  public:
   yfs_client(std::string, std::string);
 
   bool isfile(inum);
   bool isdir(inum);
+<<<<<<< HEAD
   bool issymlink(inum);
+=======
+>>>>>>> cf4284c1e97487806b378590fcf15de310910818
 
   int getfile(inum, fileinfo &);
   int getdir(inum, dirinfo &);
@@ -75,6 +90,7 @@ class yfs_client {
   int read(inum, size_t, off_t, std::string &);
   int unlink(inum,const char *);
   int mkdir(inum , const char *, mode_t , inum &);
+<<<<<<< HEAD
   
   /** you may need to add symbolic link related methods here.*/
   int symlink(inum, const char *, const char *, inum &);
@@ -89,6 +105,8 @@ struct dir_entry {
   uint8_t name_len;
   uint8_t file_type;
   char *name;
+=======
+>>>>>>> cf4284c1e97487806b378590fcf15de310910818
 };
 
 #endif 

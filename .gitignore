@@ -14,3 +14,8 @@ lock_server
 lock_tester
 test-lab-4-a
 test-lab-4-b
+*.d
+lab1_tester
+*.log
+foo.txt.yfs*
+tmprand

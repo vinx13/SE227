@@ -23,6 +23,7 @@ disk::read_block(blockid_t id, char *buf)
 
   const char *block = (const char*) blocks[id];
   memcpy(buf, block, BLOCK_SIZE);
+
 }
 
 void
@@ -134,6 +135,7 @@ block_manager::write_block(uint32_t id, const char *buf)
   d->write_block(id, buf);
 
   printf("\t\tbm: write_block %d done\n", id);
+  d->write_block(id, buf);
 }
 
 // inode layer -----------------------------------------
@@ -394,6 +396,7 @@ inode_manager::write_file(uint32_t inum, const char *buf, int size)
   put_inode(inum, inode);
 
   free(inode);
+  
 }
 
 void

@@ -10,6 +10,7 @@ LAB6GE=$(shell expr $(LAB) \>\= 6)
 LAB7GE=$(shell expr $(LAB) \>\= 7)
 CXXFLAGS =  -g -MMD -Wall -I. -I$(RPC) -DLAB=$(LAB) -DSOL=$(SOL) -D_FILE_OFFSET_BITS=64 -std=c++11
 FUSEFLAGS= -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=25 -I/usr/local/include/fuse -I/usr/include/fuse
+
 # choose librpc based on architecture
 ifeq ($(shell getconf LONG_BIT),64)
 	RPCLIB= librpc64.a
@@ -144,6 +145,5 @@ handin_file=lab$(LAB).tgz
 labdir=$(shell basename $(PWD))
 handin: 
 	@bash -c "cd ../; tar -X <(tr ' ' '\n' < <(echo '$(handin_ignore)')) -czvf $(handin_file) $(labdir); mv $(handin_file) $(labdir); cd $(labdir)"
-
 	@echo Please modify lab4.tgz to lab4_[your student id].tgz and upload it to ftp://xiaodi:public@public.sjtu.edu.cn/upload/lab4	
 	@echo Thanks!

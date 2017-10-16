@@ -46,6 +46,7 @@ getattr(yfs_client::inum inum, struct stat &st)
 
     st.st_ino = inum;
     printf("getattr %016llx %d\n", inum, yfs->isfile(inum));
+<<<<<<< HEAD
     
     if (yfs->isdir(inum)) {
         yfs_client::dirinfo info;
@@ -75,6 +76,32 @@ getattr(yfs_client::inum inum, struct stat &st)
         printf("   getattr -> %llu\n", info.size);
     }
 
+=======
+    if(yfs->isfile(inum)){
+        yfs_client::fileinfo info;
+        ret = yfs->getfile(inum, info);
+        if(ret != yfs_client::OK)
+            return ret;
+        st.st_mode = S_IFREG | 0666;
+        st.st_nlink = 1;
+        st.st_atime = info.atime;
+        st.st_mtime = info.mtime;
+        st.st_ctime = info.ctime;
+        st.st_size = info.size;
+        printf("   getattr -> %llu\n", info.size);
+    } else {
+        yfs_client::dirinfo info;
+        ret = yfs->getdir(inum, info);
+        if(ret != yfs_client::OK)
+            return ret;
+        st.st_mode = S_IFDIR | 0777;
+        st.st_nlink = 2;
+        st.st_atime = info.atime;
+        st.st_mtime = info.mtime;
+        st.st_ctime = info.ctime;
+        printf("   getattr -> %lu %lu %lu\n", info.atime, info.mtime, info.ctime);
+    }
+>>>>>>> cf4284c1e97487806b378590fcf15de310910818
     return yfs_client::OK;
 }
 
