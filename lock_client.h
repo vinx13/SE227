@@ -20,5 +20,17 @@ class lock_client {
   virtual lock_protocol::status stat(lock_protocol::lockid_t);
 };
 
+class yfs_lock {
+  public:
+    yfs_lock(lock_client *lc, lock_protocol::lockid_t id): id_(id), lc_(lc) {
+      lc_->acquire(id_);
+    }
+    ~yfs_lock() {
+      lc_->release(id_);
+    }
+  private:
+    lock_protocol::lockid_t id_;
+    lock_client *lc_;
+};
 
 #endif 

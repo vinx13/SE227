@@ -9,10 +9,17 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <atomic>
+
+#define YFS_LOCK(ID) \
+    volatile yfs_lock _lock(lc, ID); \
+    std::atomic_thread_fence (std::memory_order_seq_cst);
+
 yfs_client::yfs_client(std::string extent_dst, std::string lock_dst)
 {
-  ec = new extent_client(extent_dst);
   lc = new lock_client(lock_dst);
+  YFS_LOCK(1)
+  ec = new extent_client(extent_dst);
   if (ec->put(1, "") != extent_protocol::OK)
       printf("error init root dir\n"); // XYB: init root dir
 }
@@ -104,8 +111,7 @@ int
 yfs_client::symlink(inum parent, const char *name, const char *link, inum &ino_out) {
     int r = OK;
 
-    lc->acquire(parent);
-
+    YFS_LOCK(parent)
     printf("symlink parent %016llx, name %s, link %s\n", parent, name, link);
 
     dir dirnode;
@@ -122,7 +128,6 @@ yfs_client::symlink(inum parent, const char *name, const char *link, inum &ino_o
 
     savedirnode(parent, dirnode);
 
-    lc->release(parent);
 
     return r;
 }
@@ -132,7 +137,7 @@ yfs_client::getfile(inum inum, fileinfo &fin)
 {
     int r = OK;
 
-    lc->acquire(inum);
+    YFS_LOCK(inum);
 
     printf("getfile %016llx\n", inum);
     extent_protocol::attr a;
@@ -148,7 +153,6 @@ yfs_client::getfile(inum inum, fileinfo &fin)
     printf("getfile %016llx -> sz %llu\n", inum, fin.size);
 
 release:
-    lc->release(inum);
     return r;
 }
 
@@ -157,7 +161,7 @@ yfs_client::getdir(inum inum, dirinfo &din)
 {
     int r = OK;
 
-    lc->acquire(inum);
+    YFS_LOCK(inum)
 
     printf("getdir %016llx\n", inum);
     extent_protocol::attr a;
@@ -170,7 +174,6 @@ yfs_client::getdir(inum inum, dirinfo &din)
     din.ctime = a.ctime;
 
 release:
-    lc->release(inum);
     return r;
 }
 
@@ -189,7 +192,7 @@ yfs_client::setattr(inum ino, size_t size)
 {
     int r = OK;
 
-    lc->acquire(ino);
+    YFS_LOCK(ino)
     /*
      * your lab2 code goes here.
      * note: get the content of inode ino, and modify its content
@@ -206,7 +209,6 @@ yfs_client::setattr(inum ino, size_t size)
     buf.resize(size, '\0');
     r = ec->put(ino, buf);
 
-    lc->release(ino);
     return r;
 }
 
@@ -216,7 +218,8 @@ yfs_client::create(inum parent, const char *name, mode_t mode, inum &ino_out)
     int r = OK;
 
     printf("create parent: %016llx, name: %s\n", parent, name);
-    lc->acquire(parent);
+    YFS_LOCK(parent)
+
     /*
      * your lab2 code goes here.
      * note: lookup is what you need to check if file EXIST;
@@ -236,7 +239,6 @@ yfs_client::create(inum parent, const char *name, mode_t mode, inum &ino_out)
    
     savedirnode(parent, dirnode);
  
-    lc->release(parent);
     return r;
 }
 
@@ -246,7 +248,7 @@ yfs_client::mkdir(inum parent, const char *name, mode_t mode, inum &ino_out)
     int r = OK;
 
     printf("mkdir parent: %016llx, name: %s\n", parent, name);
-    lc->acquire(parent);
+    YFS_LOCK(parent)
     /*
      * your lab2 code goes here.
      * note: lookup is what you need to check if directory exist;
@@ -267,7 +269,6 @@ yfs_client::mkdir(inum parent, const char *name, mode_t mode, inum &ino_out)
     
     savedirnode(parent, dirnode);
 
-    lc->release(parent);
     return r;
 }
 
@@ -277,7 +278,7 @@ yfs_client::lookup(inum parent, const char *name, bool &found, inum &ino_out)
     int r = OK;
 
     printf("lookup %s\n", name);
-    lc->acquire(parent);
+    YFS_LOCK(parent)
     /*
      * your lab2 code goes here.
      * note: lookup file from parent dir according to name;
@@ -289,7 +290,6 @@ yfs_client::lookup(inum parent, const char *name, bool &found, inum &ino_out)
 
     dirnode.lookup(name, found, ino_out);
 
-    lc->release(parent);
     return r;
 }
 
@@ -298,7 +298,7 @@ yfs_client::readdir(inum parent, std::list<dirent> &list)
 {
     int r = OK;
 
-    lc->acquire(parent);
+    YFS_LOCK(parent)
     /*
      * your lab2 code goes here.
      * note: you should parse the dirctory content using your defined format,
@@ -312,7 +312,6 @@ yfs_client::readdir(inum parent, std::list<dirent> &list)
 
     dirnode.getentries(list);
 
-    lc->release(parent);
     return r;
 }
 
@@ -320,7 +319,7 @@ int
 yfs_client::read(inum ino, size_t size, off_t off, std::string &data)
 {
     int r = OK;
-    lc->acquire(ino);
+    YFS_LOCK(ino)
 
     /*
      * your lab2 code goes here.
@@ -335,7 +334,6 @@ yfs_client::read(inum ino, size_t size, off_t off, std::string &data)
     if (data.size() > size)
       data.resize(size);
 
-    lc->release(ino);
     printf("read %016llx actual size %lu\n", ino, data.size());
     return r;
 }
@@ -345,7 +343,7 @@ yfs_client::write(inum ino, size_t size, off_t off, const char *data,
         size_t &bytes_written)
 {
     int r = OK;
-    lc->acquire(ino);
+    YFS_LOCK(ino)
 
     /*
      * your lab2 code goes here.
@@ -366,14 +364,13 @@ yfs_client::write(inum ino, size_t size, off_t off, const char *data,
     }
     buf.replace(off, size, data, size);
     r = ec->put(ino, buf);
-    lc->release(ino);
     return r;
 }
 
 int yfs_client::unlink(inum parent,const char *name)
 {
     int r = OK;
-    lc->acquire(parent);
+    YFS_LOCK(parent)
 
     /*
      * your lab2 code goes here.
@@ -396,7 +393,6 @@ int yfs_client::unlink(inum parent,const char *name)
 
     r = savedirnode(parent, dirnode);
 
-    lc->release(parent);
     return r;
 }
 

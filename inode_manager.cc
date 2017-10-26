@@ -52,6 +52,7 @@ block_manager::alloc_block()
    * you need to think about which block you can start to be allocated.
    */
   
+  std::lock_guard<std::mutex> lock(mtx_);
   char bitmap_buf[BLOCK_SIZE];
 
   for (blockid_t block = IBLOCK(INODE_NUM + 1, BLOCK_NUM), bitmap = BBLOCK(0);
@@ -90,6 +91,7 @@ block_manager::free_block(uint32_t id)
 
   printf("\t\tbm: free_block %d\n", id);
 
+  std::lock_guard<std::mutex> lock(mtx_);
   if (id >= BLOCK_NUM) return;
 
   char bitmap_buf[BLOCK_SIZE];
@@ -160,6 +162,8 @@ inode_manager::alloc_inode(uint32_t type)
    * note: the normal inode block should begin from the 2nd inode block.
    * the 1st is used for root_dir, see inode_manager::inode_manager().
    */
+
+  std::lock_guard<std::mutex> lock(mtx_);
   
   char buf[BLOCK_SIZE];
 
@@ -198,6 +202,7 @@ inode_manager::free_inode(uint32_t inum)
 
   printf("\tim: put_inode %d\n", inum);
 
+  std::lock_guard<std::mutex> lock(mtx_);
   if (inum >= INODE_NUM) return;
 
   struct inode *ino = get_inode(inum);
@@ -222,6 +227,7 @@ inode_manager::get_inode(uint32_t inum)
   if (inum >= INODE_NUM) {
     printf("\tim: inum out of range\n");
     return NULL;
+
   }
 
   bm->read_block(IBLOCK(inum, bm->sb.nblocks), buf);

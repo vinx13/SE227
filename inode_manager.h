@@ -4,6 +4,7 @@
 #define inode_h
 
 #include <stdint.h>
+#include <mutex>
 #include "extent_protocol.h" // TODO: delete it
 
 #define DISK_SIZE  1024*1024*16
@@ -34,6 +35,7 @@ typedef struct superblock {
 
 class block_manager {
  private:
+  std::mutex mtx_;
   disk *d;
   std::map <uint32_t, int> using_blocks;
  public:
@@ -80,6 +82,7 @@ typedef struct inode {
 
 class inode_manager {
  private:
+  std::mutex mtx_;
   block_manager *bm;
   struct inode* get_inode(uint32_t inum);
   void put_inode(uint32_t inum, struct inode *ino);

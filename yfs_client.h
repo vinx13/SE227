@@ -50,6 +50,7 @@ class yfs_client {
     void getentries(std::list<dirent> &entries) const;
   };
 
+
  private:
   static std::string filename(inum);
   static inum n2i(std::string);
