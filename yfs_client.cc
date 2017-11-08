@@ -15,13 +15,27 @@
     volatile yfs_lock _lock(lc, ID); \
     std::atomic_thread_fence (std::memory_order_seq_cst);
 
-yfs_client::yfs_client(std::string extent_dst, std::string lock_dst)
+yfs_client::yfs_client()
+{
+  ec = NULL;
+  lc = NULL;
+}
+
+yfs_client::yfs_client(std::string extent_dst, std::string lock_dst, const char* cert_file)
 {
   lc = new lock_client(lock_dst);
   YFS_LOCK(1)
   ec = new extent_client(extent_dst);
   if (ec->put(1, "") != extent_protocol::OK)
       printf("error init root dir\n"); // XYB: init root dir
+}
+
+int
+yfs_client::verify(const char* name, unsigned short *uid)
+{
+  	int ret = OK;
+
+	return ret;
 }
 
 
@@ -188,7 +202,7 @@ release:
 
 // Only support set size of attr
 int
-yfs_client::setattr(inum ino, size_t size)
+yfs_client::setattr(inum ino, filestat st, unsigned long size)
 {
     int r = OK;
 
