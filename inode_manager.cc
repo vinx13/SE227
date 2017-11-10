@@ -1,4 +1,5 @@
 #include "inode_manager.h"
+#include "version.h"
 #include <ctime>
 
 // disk layer -----------------------------------------
@@ -58,7 +59,7 @@ block_manager::alloc_block()
   for (blockid_t block = IBLOCK(INODE_NUM + 1, BLOCK_NUM), bitmap = BBLOCK(0);
        block < BLOCK_NUM;
        ++bitmap, block += BPB) { 
-    d->read_block(bitmap, bitmap_buf);
+    read_block(bitmap, bitmap_buf);
     
     for (uint32_t byte_index = 0; byte_index < BLOCK_SIZE; ++byte_index) {
       unsigned char byte = bitmap_buf[byte_index]; 
@@ -67,7 +68,7 @@ block_manager::alloc_block()
 
         if (!(byte & (1 << bit_index))) {// found available block
           bitmap_buf[byte_index] |= 1 << bit_index;
-          d->write_block(bitmap, bitmap_buf);
+          write_block(bitmap, bitmap_buf);
          
           blockid_t id = block + byte_index * 8 + bit_index;
           printf("\t\tbm: alloc block %d\n", id);
@@ -99,12 +100,12 @@ block_manager::free_block(uint32_t id)
   unsigned char bit_index = (id % BPB) % 8;
 
   blockid_t bitmap = BBLOCK(id);
-  d->read_block(bitmap, bitmap_buf);
+  read_block(bitmap, bitmap_buf);
   
   if (!(bitmap_buf[byte_index] & (1 << bit_index))) return;
 
   bitmap_buf[byte_index] &= ~(1 << bit_index);
-  d->write_block(bitmap, bitmap_buf);
+  write_block(bitmap, bitmap_buf);
 
 }
 
@@ -122,11 +123,15 @@ block_manager::block_manager()
 }
 
 void
+block_manager::attach_version_control(version_control *vc) {
+  this->vc = vc;
+}
+
+void
 block_manager::read_block(uint32_t id, char *buf)
 {
   printf("\t\tbm: read_block %d\n", id);
-
-  d->read_block(id, buf);
+  read_block_internal_(id, buf);
 }
 
 void
@@ -134,18 +139,35 @@ block_manager::write_block(uint32_t id, const char *buf)
 {
   printf("\t\tbm: write_block %d\n", id);
 
-  d->write_block(id, buf);
+  char old[BLOCK_NUM];
+  
+  read_block_internal_(id, old);
+  vc->add_entry(log_entry (id, old, buf));
 
-  printf("\t\tbm: write_block %d done\n", id);
+  write_block_internal_(id, buf);
+}
+
+void
+block_manager::write_block_internal_(uint32_t id, const char *buf) {
   d->write_block(id, buf);
 }
+
+void block_manager::read_block_internal_(uint32_t id, char *buf) {
+  d->read_block(id, buf);
+}
+
 
 // inode layer -----------------------------------------
 
 inode_manager::inode_manager()
 {
   bm = new block_manager();
+  vc = new version_control(bm);
+  bm->attach_version_control(vc);
+
   uint32_t root_dir = alloc_inode(extent_protocol::T_DIR);
+  vc->commit();
+
   if (root_dir != 1) {
     printf("\tim: error! alloc first inode %d, should be 1\n", root_dir);
     exit(0);
@@ -465,5 +487,19 @@ inode_manager::remove_file(uint32_t inum)
   }
 
   free_inode(inum);
+}
+
+void
+inode_manager::commit() {
+  vc->commit(); 
+}
+
+void
+inode_manager::redo() {
+  vc->redo();
+}
+
+void inode_manager::rollback() {
+  vc->rollback();
 }
 

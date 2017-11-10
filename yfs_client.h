@@ -104,6 +104,10 @@ class yfs_client {
   int symlink(inum, const char *, const char *, inum &);
   int readlink(inum, std::string &);
   int verify(const char* cert_file, unsigned short*);
+
+  void prev();
+  void next();
+  void commit();
 };
 
 #define MAX_NAME_LEN 255

@@ -65,4 +65,33 @@ extent_client::remove(extent_protocol::extentid_t eid)
   return ret;
 }
 
+extent_protocol::status
+extent_client::commit()
+{
+  int result;
+  extent_protocol::extentid_t id = 0LL;
+  extent_protocol::status ret = extent_protocol::OK;
+  ret = cl->call(extent_protocol::commit, id, result);
+  return ret;
+}
+
+extent_protocol::status
+extent_client::rollback()
+{
+  int result;
+  extent_protocol::extentid_t id = 0LL;
+  extent_protocol::status ret = extent_protocol::OK;
+  ret = cl->call(extent_protocol::rollback, id, result);
+  return ret;
+}
+
+extent_protocol::status
+extent_client::redo()
+{
+  int result;
+  extent_protocol::status ret = extent_protocol::OK;
+  extent_protocol::extentid_t id = 0LL;
+  ret = cl->call(extent_protocol::redo, id, result);
+  return ret;
+}
 

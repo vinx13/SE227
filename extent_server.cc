@@ -80,3 +80,30 @@ int extent_server::remove(extent_protocol::extentid_t id, int &)
   return extent_protocol::OK;
 }
 
+int extent_server::commit(extent_protocol::extentid_t unused, int &)
+{
+    printf("extent_server: commit\n");
+
+    im->commit();
+    
+    return extent_protocol::OK;
+}
+
+int extent_server::rollback(extent_protocol::extentid_t unused, int &)
+{
+    printf("extent_server: rollback\n");
+
+    im->rollback();
+
+    return extent_protocol::OK;
+}
+
+int extent_server::redo(extent_protocol::extentid_t unused, int &)
+{
+    printf("extent_server: redo\n");
+
+    im->redo();
+
+    return extent_protocol::OK;
+}
+

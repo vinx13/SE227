@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 #include <arpa/inet.h>
 #include "lang/verify.h"
 #include "yfs_client.h"
@@ -23,6 +24,17 @@ yfs_client *yfs;
 
 int id() { 
     return myid;
+}
+
+void sig_handler(int no) {
+    switch (no) {
+        case SIGINT:
+            yfs->commit(); break;
+        case SIGUSR1:
+            yfs->prev(); break;
+        case SIGUSR2:
+            yfs->next(); break;
+    }
 }
 
 //
@@ -552,6 +564,10 @@ struct fuse_lowlevel_ops fuseserver_oper;
 int
 main(int argc, char *argv[])
 {
+    signal(SIGINT, sig_handler);
+    signal(SIGUSR1, sig_handler);
+    signal(SIGUSR2, sig_handler);
+
     char *mountpoint = 0;
     int err = -1;
     int fd;

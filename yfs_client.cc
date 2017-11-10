@@ -494,3 +494,15 @@ void yfs_client::dir::getentries(std::list<dirent> &entries) const {
     }
 }
 
+void yfs_client::commit() {
+    ec->commit();
+}
+
+void yfs_client::prev() {
+    ec->rollback();
+}
+
+void yfs_client::next() {
+    ec->redo();
+}
+

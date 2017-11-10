@@ -27,6 +27,10 @@ class extent_server {
   int get(extent_protocol::extentid_t id, std::string &);
   int getattr(extent_protocol::extentid_t id, extent_protocol::attr &);
   int remove(extent_protocol::extentid_t id, int &);
+
+  int commit(extent_protocol::extentid_t unused, int &);
+  int rollback(extent_protocol::extentid_t unused, int &);
+  int redo(extent_protocol::extentid_t unused, int &);
 };
 
 #endif 

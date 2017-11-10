@@ -13,6 +13,8 @@
 
 typedef uint32_t blockid_t;
 
+class version_control;
+
 // disk layer -----------------------------------------
 
 class disk {
@@ -34,10 +36,16 @@ typedef struct superblock {
 } superblock_t;
 
 class block_manager {
+ friend class version_control;
  private:
   std::mutex mtx_;
   disk *d;
   std::map <uint32_t, int> using_blocks;
+  version_control *vc;
+
+  void write_block_internal_(uint32_t id, const char *buf);
+  void read_block_internal_(uint32_t id, char *buf);
+
  public:
   block_manager();
   struct superblock sb;
@@ -48,6 +56,8 @@ class block_manager {
   void write_block(uint32_t id, const char *buf);
 
   int get_nblocks(int size) { return size / BLOCK_SIZE + (size % BLOCK_SIZE != 0); }
+
+  void attach_version_control(version_control *vc);
 };
 
 // inode layer -----------------------------------------
@@ -84,9 +94,9 @@ class inode_manager {
  private:
   std::mutex mtx_;
   block_manager *bm;
+  version_control *vc;
   struct inode* get_inode(uint32_t inum);
   void put_inode(uint32_t inum, struct inode *ino);
-
  public:
   inode_manager();
   uint32_t alloc_inode(uint32_t type);
@@ -95,6 +105,10 @@ class inode_manager {
   void write_file(uint32_t inum, const char *buf, int size);
   void remove_file(uint32_t inum);
   void getattr(uint32_t inum, extent_protocol::attr &a);
+
+  void commit();
+  void rollback();
+  void redo();
 };
 
 #endif
