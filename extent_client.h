@@ -6,6 +6,7 @@
 #include <string>
 #include "extent_protocol.h"
 #include "extent_server.h"
+#include "rpc.h"
 
 class extent_client {
  private:

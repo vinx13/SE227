@@ -41,7 +41,6 @@ class yfs_client {
     unsigned long long size;
     unsigned long atime;
     unsigned long mtime;
-    unsigned long ctime;
 	unsigned long mode;
 	unsigned short uid;
 	unsigned short gid;

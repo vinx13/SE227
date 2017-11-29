@@ -216,7 +216,6 @@ fuseserver_read(fuse_req_t req, fuse_ino_t ino, size_t size,
     fuse_reply_err(req, ENOSYS);
 #endif
 
-
 }
 
 //
@@ -331,6 +330,7 @@ void fuseserver_mknod( fuse_req_t req, fuse_ino_t parent,
             fuse_reply_err(req, ENOENT);
         }
     }
+
 }
 
 //

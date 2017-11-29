@@ -1,4 +1,4 @@
-LAB=5
+LAB=6
 SOL=0
 RPC=./rpc
 LAB1GE=$(shell expr $(LAB) \>\= 1)
@@ -52,6 +52,7 @@ lab2: yfs_client
 lab3: yfs_client extent_server test-lab-3-g
 lab4: lock_server lock_tester lock_demo yfs_client extent_server test-lab-4-a test-lab-4-b
 lab5: lock_server lock_tester lock_demo yfs_client extent_server test-lab-5
+lab6: lock_server rsm_tester
 
 lab7: lock_server lock_tester lock_demo yfs_client extent_server test_lab_7
 lab8: lock_tester lock_server rsm_tester
@@ -83,6 +84,9 @@ lock_tester=lock_tester.cc lock_client.cc
 lock_tester : $(patsubst %.cc,%.o,$(lock_tester)) rpc/$(RPCLIB)
 
 lock_server=lock_server.cc lock_smain.cc
+ifeq ($(LAB6GE),1)
+  lock_server+= $(rsm_files)
+endif
 
 lock_server : $(patsubst %.cc,%.o,$(lock_server)) rpc/$(RPCLIB)
 

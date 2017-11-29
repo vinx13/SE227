@@ -1,6 +1,7 @@
 // yfs client.  implements FS operations using extent and lock server
 #include "yfs_client.h"
 #include "extent_client.h"
+#include "lock_client.h"
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
@@ -51,9 +52,9 @@ yfs_client::n2i(std::string n)
 std::string
 yfs_client::filename(inum inum)
 {
-    std::ostringstream ost;
-    ost << inum;
-    return ost.str();
+  std::ostringstream ost;
+  ost << inum;
+  return ost.str();
 }
 
 bool
