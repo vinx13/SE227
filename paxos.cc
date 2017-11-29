@@ -219,12 +219,13 @@ proposer::decide(unsigned instance, std::vector<std::string> accepts,
   paxos_protocol::decidearg arg;
   arg.instance = instance;
   arg.v = v;
+  int r;
 
   for (const auto & node: accepts) {
      handle h(node);
      rpcc *cl = h.safebind();
      if (cl) {
-        cl->call(paxos_protocol::decidereq, me, arg, rpcc::to(1000));
+        cl->call(paxos_protocol::decidereq, me, arg, r, rpcc::to(1000));
      }
   }
 }
@@ -262,13 +263,17 @@ acceptor::preparereq(std::string src, paxos_protocol::preparearg a,
   // You fill this in for Lab 6
   // Remember to initialize *BOTH* r.accept and r.oldinstance appropriately.
   // Remember to *log* the proposal if the proposal is accepted.
+  tprintf("preparereq from %s\n", src.c_str());
   if (a.instance <= instance_h) {
       r.oldinstance = true;
-  } else if (a.n >= n_h) {
-      n_h = a.n;
       r.accept = true;
+  } else if (a.n >= n_h) {
+      r.oldinstance = false;
+      r.accept = true;
+      n_h = a.n;
       r.n_a = n_a;
       r.v_a = v_a;
+      l->logprop(n_h);
   }
 
   return paxos_protocol::OK;
@@ -281,9 +286,10 @@ acceptor::acceptreq(std::string src, paxos_protocol::acceptarg a, bool &r)
   // You fill this in for Lab 6
   // Remember to *log* the accept if the proposal is accepted.
   if (a.n >= n_h) {
-      n_a = n;
+      n_a = a.n;
       v_a = a.v;
       r = true;
+      l->logaccept(n_a, v_a);
   } else {
       r = false;
   }
