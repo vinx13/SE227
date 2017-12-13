@@ -24,13 +24,13 @@ disk::read_block(blockid_t id, char *buf)
 {
   /*
    *your lab1 code goes here.
-   *if id is smaller than 0 or larger than BLOCK_NUM 
+   *if id is smaller than 0 or larger than DBLOCK_NUM 
    *or buf is null, just return.
    *put the content of target block into buf.
    *hint: use memcpy
   */
 
-  if (id >= BLOCK_NUM || !buf) return;
+  if (id >= DBLOCK_NUM || !buf) return;
 
   const char *block = (const char*) blocks[id];
   memcpy(buf, block, BLOCK_SIZE);
@@ -45,7 +45,7 @@ disk::write_block(blockid_t id, const char *buf)
    *hint: just like read_block
   */
   
-  if (id >= BLOCK_NUM || !buf) return;
+  if (id >= DBLOCK_NUM || !buf) return;
 
   char *block = (char *) blocks[id];
   memcpy(block, buf, BLOCK_SIZE);
@@ -66,8 +66,8 @@ block_manager::alloc_block()
   std::lock_guard<std::mutex> lock(mtx_);
   char bitmap_buf[BLOCK_SIZE];
 
-  for (blockid_t block = IBLOCK(INODE_NUM + 1, BLOCK_NUM), bitmap = BBLOCK(0);
-       block < BLOCK_NUM;
+  for (blockid_t block = IBLOCK(INODE_NUM + 1, DBLOCK_NUM), bitmap = BBLOCK(0);
+       block < DBLOCK_NUM;
        ++bitmap, block += BPB) { 
     read_block(bitmap, bitmap_buf);
     
@@ -88,7 +88,7 @@ block_manager::alloc_block()
     }
   }
   
-  return BLOCK_NUM;
+  return DBLOCK_NUM;
 
 }
 
@@ -103,7 +103,7 @@ block_manager::free_block(uint32_t id)
   printf("\t\tbm: free_block %d\n", id);
 
   std::lock_guard<std::mutex> lock(mtx_);
-  if (id >= BLOCK_NUM) return;
+  if (id >= DBLOCK_NUM) return;
 
   char bitmap_buf[BLOCK_SIZE];
   uint32_t byte_index = (id % BPB) / 8;
@@ -126,8 +126,8 @@ block_manager::block_manager()
   d = new disk();
 
   // format the disk
-  sb.size = BLOCK_SIZE * BLOCK_NUM;
-  sb.nblocks = BLOCK_NUM;
+  sb.size = BLOCK_SIZE * DBLOCK_NUM;
+  sb.nblocks = DBLOCK_NUM;
   sb.ninodes = INODE_NUM;
 
 }
@@ -149,7 +149,7 @@ block_manager::write_block(uint32_t id, const char *buf)
 {
   printf("\t\tbm: write_block %d\n", id);
 
-  char old[BLOCK_NUM];
+  char old[DBLOCK_NUM];
   
   read_block_internal_(id, old);
   vc->add_entry(log_entry (id, old, buf));
