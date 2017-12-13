@@ -10,7 +10,7 @@
 #define DISK_SIZE  1024*1024*16
 #define BLOCK_SIZE 512
 #define BLOCK_NUM  (DISK_SIZE/BLOCK_SIZE)
-#define DBLOCK_NUM (BLOCK_NUM/3)
+#define DBLOCK_NUM (BLOCK_NUM/8)
 
 typedef uint32_t blockid_t;
 

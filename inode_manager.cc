@@ -7,6 +7,15 @@
 #include <ctime>
 
 // disk layer -----------------------------------------
+static void shift_right(const char *block, int offset, char *dest) {
+    memcpy(dest + offset, block, BLOCK_SIZE - offset);
+    memcpy(dest, block + BLOCK_SIZE - offset, offset);
+}
+
+static void shift_left(const char *block, int offset, char *dest) {
+    memcpy(dest, block + offset, BLOCK_SIZE - offset);
+    memcpy(dest + BLOCK_SIZE - offset, block, offset);
+}
 
 disk::disk()
 {
@@ -32,9 +41,23 @@ disk::read_block(blockid_t id, char *buf)
 
   if (id >= DBLOCK_NUM || !buf) return;
 
-  const char *block = (const char*) blocks[id];
-  memcpy(buf, block, BLOCK_SIZE);
+  char *block1 = new char[BLOCK_SIZE], *block2 = new char[BLOCK_SIZE], *block3 = new char[BLOCK_SIZE], *block4 = new char[BLOCK_SIZE];
+  const char *block0 = (const char*) blocks[id];
+  shift_left((char *)blocks[DBLOCK_NUM + id], 2, block1);
+  shift_left((char *)blocks[DBLOCK_NUM*2 + id], 4, block2);
+  shift_left((char *)blocks[DBLOCK_NUM*3 + id], 6, block3);
+  shift_left((char *)blocks[DBLOCK_NUM*4 + id], 8, block4);
 
+  for (int i = 0; i < BLOCK_SIZE; i++) {
+      unsigned char a = block0[i], b = block1[i], c = block2[i], d = block3[i], e = block4[i];
+  //    assert((a==b)&&(b==c)&&(c==d)&&(d==e));
+      unsigned char byte = (a&b&c)|(a&b&d)|(a&b&e)|(a&c&d)|(a&c&e)|(a&d&e)|(b&c&d)|(b&c&e)|(b&d&e)|(c&d&e);
+    //  assert(byte==a);
+      //unsigned char byte = (block0[i] & block1[i]) | (block0[i] & block2[i]) | (block1[i] & block2[i]);
+      //unsigned char byte = block0[i];
+      //assert(block0[i]==block1[i]);assert(block1[i]==block2[i]);
+      buf[i] = byte;
+  }
 }
 
 void
@@ -47,8 +70,12 @@ disk::write_block(blockid_t id, const char *buf)
   
   if (id >= DBLOCK_NUM || !buf) return;
 
-  char *block = (char *) blocks[id];
-  memcpy(block, buf, BLOCK_SIZE);
+  char *block0 = (char *)blocks[id], *block1 = (char *)blocks[DBLOCK_NUM + id], *block2 = (char *)blocks[DBLOCK_NUM * 2 + id], *block3 = (char *)blocks[DBLOCK_NUM * 3 + id], *block4 = (char *)blocks[DBLOCK_NUM * 4 + id];
+  memcpy(block0, buf, BLOCK_SIZE);
+  shift_right(block0, 2, block1);
+  shift_right(block1, 2, block2);
+  shift_right(block2, 2, block3);
+  shift_right(block3, 2, block4);
 }
 
 // block layer -----------------------------------------
