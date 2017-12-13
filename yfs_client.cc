@@ -371,7 +371,8 @@ yfs_client::write(inum ino, size_t size, off_t off, const char *data,
 
     if ((r = ec->get(ino, buf)) != OK) return r;
     
-    bytes_written = off + size - buf.size();
+    //bytes_written = off + size - buf.size();
+    bytes_written = size;
     
     if (off + size > buf.size()) {
         buf.resize(off + size, '\0');
